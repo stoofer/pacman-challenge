@@ -19,9 +19,9 @@
 
 (defn moves-in [n-fn point valid-neighbours log]
   (let [possibles (n-fn point)
-        _ (log possibles)
+        ;_ (log possibles)
         filtered (into {} (filter (fn[[k v]] (not (nil? (valid-neighbours v)))) possibles))]
-    (log filtered)
+    (comment log filtered)
     filtered))
 
 (defn neighbours-of [n-fn points valid-neighbours]

@@ -11,7 +11,7 @@
 
 
 
-(defn log [message]
+(comment def log [message]
   (let [file (System.IO.StreamWriter. "clj-ghost.log" true)]
     (.WriteLine file message)
     (.Close file)))
@@ -74,28 +74,22 @@
 (defn all-ghosts [board]
 	 (->> board .Ghosts (map PlayerInfo->ghost)))
 
+	 
+
+(let [board (Board.)
+	all (->> (Board.) accessible-cells (map first) set)
+	dimensions [(.Width board) (.Height board)]]
+	(def board-partial{
+		:neighbours (memoize (fn[point](neighbours point dimensions)))
+		:all all
+		:log (fn [message] nil)
+	}))
 	
 (defn board->clj [board]
-	(let [cells (accessible-cells board)
-	      all-of (fn[type]
-					(->> cells
-						 (filter (fn[[_ content]] (= type content)))
-						 (map first)
-						 set))
-		  empty-cells (all-of :empty)
-		  pills (all-of :pill)
-		  dots (all-of :dot)
-		  dimensions [(.Width board) (.Height board)]]
-		{
-			:pacman (pacman-cell board)
-			:ghosts (all-ghosts board)
-			:dots dots 
-			:pills pills 
-			:neighbours (fn[point](neighbours point dimensions))
-			:empty empty-cells
-               :all (union dots pills empty-cells)
-               :log (fn [message] (log message))
-		}))
+	(assoc board-partial
+		:pacman (pacman-cell board)
+		:ghosts (all-ghosts board)
+		:log (fn [message] nil)))
  
 (def ghost-state (atom [13 23]))
 
@@ -115,12 +109,11 @@
         board (board->clj b)
         ghost (PlayerInfo->ghost ghostInfo)
         [dir new-state] (ghost/move ghost board state)
-        _ (log (str "Direction:" dir))]
+        ]
         (save-state! id new-state)
         (clj->direction dir)))
 
 (defn move-ghost [b ghostInfo]
-  (try
     (let [id (.GhostID ghostInfo)
         state (load-ghost-state-for id)]
     
@@ -128,15 +121,4 @@
         (do 
           (reset-state!)
           (clj->direction (if (odd? id) :left :right)))
-        (really-move-ghost b ghostInfo state)))
-    (catch Exception e (log (.ToString e)))))
-
-(defrecord DozyPac []
-	IPacManAI
-    (getAIName [_]
-       "Dozy Pac")
-	   
-	(getDesiredDirection [this board]
-       (PlayerInfo+Direction/Right))
-	   
-	(getCodersName [_] "Stuart Caborn"))
+        (really-move-ghost b ghostInfo state))))

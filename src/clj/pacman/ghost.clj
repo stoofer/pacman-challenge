@@ -15,7 +15,6 @@
         accessible (path/moves-in neighbours pos all log)
         legal-directions (dissoc accessible (path/opposite dir))
         
-        _ (log (str "facing:" dir "|legal:" legal-directions))
         already-moved-where-I-am (fn [{
                                       other-id :id 
                                       other-pos :pos}] 
@@ -26,12 +25,8 @@
                                (filter already-moved-where-I-am)
                                (map :dir))
         
-        _ (log (str "in-use:" (vector directions-in-use)))
         choices (apply dissoc legal-directions directions-in-use)
-        
-        _ (log (str "choices:" choices))
         score-direction (fn[[dir pt]](list (scent pt) dir))
-        _ (log (str "score-direction:" (vector (map score-direction choices))))
         
         choice (->> choices 
                  (map score-direction)
@@ -39,7 +34,6 @@
                  reverse
                  first
                  second)]
-    (log (str "chose:" choice))
     (or choice :no-change)))
 
 (defn run-away[{:keys [pos dir]} {:keys [all neighbours] :as board} pac-pos]
@@ -64,9 +58,7 @@
     #{pacman}))
   
 (defn move[{:keys [scared] :as ghost} {:keys [pacman] :as board} state]
-  (let [pac-pos (possible-locations board state)
-        ;_ (println (str "state:" state "|scared:" scared "|pac-pos" pac-pos))
-        ]
+  (let [pac-pos (possible-locations board state)]
     (if scared
       [(run-away ghost board pac-pos) pac-pos]
       [(chase ghost board pac-pos) pac-pos])))
